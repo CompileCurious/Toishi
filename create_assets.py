@@ -61,7 +61,7 @@ def _expand_ico_with_pillow(src: Path, dest: Path) -> None:
     img = Image.open(src).convert("RGBA")
     sizes = [(s, s) for s in _ICO_SIZES]
     img.save(dest, format="ICO", sizes=sizes)
-    print(f"Expanded {dest} → sizes {_ICO_SIZES}")
+    print(f"Expanded {dest} -> sizes {_ICO_SIZES}")
 
 
 # ---------------------------------------------------------------------------
