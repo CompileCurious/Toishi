@@ -98,7 +98,7 @@ def main():
 
     api = ToishiAPI()
     window = webview.create_window(
-        "TOISHI — ONIKIRI COMPANION",
+        "",
         f"http://127.0.0.1:{port}",
         width=1200,
         height=750,
