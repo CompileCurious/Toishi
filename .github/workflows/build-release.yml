@@ -1,0 +1,49 @@
+name: Build Toishi EXE and Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate placeholder assets
+        run: python create_assets.py
+
+      - name: Build with PyInstaller
+        run: pyinstaller toishi.spec
+
+      - name: Compute build tag
+        id: tag
+        shell: bash
+        run: echo "tag=prerelease-$(date -u +%Y%m%d-%H%M%S)" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release (prerelease)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "Toishi ${{ steps.tag.outputs.tag }}"
+          prerelease: true
+          files: dist/Toishi.exe
+          body: |
+            Automated prerelease build from commit ${{ github.sha }}
+
+            **Build date:** ${{ steps.tag.outputs.tag }}
+            **Branch:** ${{ github.ref_name }}

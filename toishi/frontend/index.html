@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TOISHI — ONIKIRI COMPANION</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ── Topbar ────────────────────────────────────────────── -->
+<div id="topbar">
+  <div class="brand">
+    <span class="title">TOISHI</span>
+    <span class="subtitle">ONIKIRI MK.I COMPANION</span>
+  </div>
+  <div id="conn-badge">○ DISCONNECTED</div>
+</div>
+
+<!-- ── Body ──────────────────────────────────────────────── -->
+<div id="body-row">
+
+  <!-- Sidebar -->
+  <nav id="sidebar">
+    <div class="tile active" data-view="connect" id="tile-connect">
+      <span class="tile-icon">🔌</span>
+      <span class="tile-label">CONNECT</span>
+      <span class="tile-status" id="tile-connect-status">DISCONNECTED</span>
+    </div>
+    <div class="tile" data-view="engagement" id="tile-engagement">
+      <span class="tile-icon">📋</span>
+      <span class="tile-label">ENGAGEMENT</span>
+      <span class="tile-status" id="tile-engagement-status"></span>
+    </div>
+    <div class="tile" data-view="payload" id="tile-payload">
+      <span class="tile-icon">💾</span>
+      <span class="tile-label">PAYLOAD</span>
+      <span class="tile-status" id="tile-payload-status"></span>
+    </div>
+    <div class="tile" data-view="settings" id="tile-settings">
+      <span class="tile-icon">⚙</span>
+      <span class="tile-label">SETTINGS</span>
+      <span class="tile-status" id="tile-settings-status"></span>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main id="main">
+
+    <!-- ── CONNECT VIEW ──────────────────────────────────── -->
+    <div class="view active" id="view-connect">
+      <h2>CONNECTION</h2>
+
+      <div class="panel" style="text-align:center;padding:20px 14px;">
+        <div class="conn-indicator off" id="conn-dot">○</div>
+        <div class="conn-label" id="conn-label">DISCONNECTED</div>
+      </div>
+
+      <div class="split">
+        <!-- USB -->
+        <div class="panel">
+          <h2>USB / RNDIS</h2>
+          <p style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;">
+            Auto-detects Onikiri at 192.168.7.1 via USB-RNDIS.
+          </p>
+          <button id="btn-auto-detect">AUTO-DETECT USB</button>
+          <div class="status-strip" id="usb-status"></div>
+        </div>
+
+        <!-- FTP -->
+        <div class="panel">
+          <h2>FTP MANUAL</h2>
+          <div class="field">
+            <label>Host</label>
+            <input id="ftp-host" type="text" value="192.168.7.1" style="width:100%;" />
+          </div>
+          <div class="row">
+            <div class="field" style="flex:1;">
+              <label>Port</label>
+              <input id="ftp-port" type="number" value="2121" style="width:100%;" />
+            </div>
+            <div class="field" style="flex:2;">
+              <label>Username</label>
+              <input id="ftp-user" type="text" value="onikiri" style="width:100%;" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input id="ftp-pass" type="password" value="onikiri" style="width:100%;" />
+          </div>
+          <button id="btn-connect-ftp">CONNECT VIA FTP</button>
+          <div class="status-strip" id="ftp-status"></div>
+        </div>
+      </div>
+
+      <!-- Device info -->
+      <div class="panel" id="device-info-panel" style="display:none;">
+        <h2>DEVICE INFO</h2>
+        <div class="device-info-grid" id="device-info-grid"></div>
+        <div class="status-strip" id="device-info-status"></div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <button class="danger" id="btn-disconnect" style="display:none;">DISCONNECT</button>
+      </div>
+    </div>
+
+    <!-- ── ENGAGEMENT VIEW ───────────────────────────────── -->
+    <div class="view" id="view-engagement">
+      <h2>ENGAGEMENT DATA</h2>
+      <div class="split">
+
+        <!-- Left: device sessions -->
+        <div>
+          <div class="panel">
+            <div class="row" style="justify-content:space-between;margin-bottom:10px;">
+              <h2 style="margin:0;border:none;padding:0;">DEVICE SESSIONS</h2>
+              <button id="btn-refresh-remote">REFRESH</button>
+            </div>
+            <div id="remote-sessions-list">
+              <span style="color:var(--text-dim);font-size:0.72rem;">Not connected.</span>
+            </div>
+            <div class="status-strip" id="remote-status"></div>
+          </div>
+        </div>
+
+        <!-- Right: local analysis -->
+        <div>
+          <div class="panel">
+            <div class="row" style="justify-content:space-between;margin-bottom:10px;">
+              <h2 style="margin:0;border:none;padding:0;">LOCAL ANALYSIS</h2>
+              <button id="btn-refresh-local">REFRESH</button>
+            </div>
+            <div class="field">
+              <label>Session</label>
+              <select id="local-session-select" style="width:100%;">
+                <option value="">— select —</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Analysis panels -->
+          <div id="analysis-area" style="display:none;">
+            <div class="tabs">
+              <button class="tab-btn active" data-tab="overview">OVERVIEW</button>
+              <button class="tab-btn" data-tab="hosts">HOSTS</button>
+              <button class="tab-btn" data-tab="wifi">WIFI</button>
+              <button class="tab-btn" data-tab="ble">BLE</button>
+              <button class="tab-btn" data-tab="creds">CREDENTIALS</button>
+              <button class="tab-btn" data-tab="hid">HID LOG</button>
+            </div>
+
+            <!-- OVERVIEW -->
+            <div class="tab-pane active" id="tab-overview">
+              <div class="cards">
+                <div class="card"><div class="card-val" id="ov-hosts">0</div><div class="card-lbl">HOSTS DISCOVERED</div></div>
+                <div class="card"><div class="card-val" id="ov-ports">0</div><div class="card-lbl">OPEN PORTS</div></div>
+                <div class="card"><div class="card-val" id="ov-ssids">0</div><div class="card-lbl">SSIDS</div></div>
+                <div class="card"><div class="card-val" id="ov-ble">0</div><div class="card-lbl">BLE DEVICES</div></div>
+                <div class="card"><div class="card-val" id="ov-creds">0</div><div class="card-lbl">CREDENTIALS</div></div>
+                <div class="card"><div class="card-val" id="ov-hid">0</div><div class="card-lbl">HID RUNS</div></div>
+              </div>
+              <div class="panel">
+                <label>TIMELINE (JOBS BY HOUR)</label>
+                <pre id="timeline-chart" style="font-size:0.72rem;color:var(--text);margin-top:8px;overflow-x:auto;"></pre>
+              </div>
+            </div>
+
+            <!-- HOSTS -->
+            <div class="tab-pane" id="tab-hosts">
+              <table id="hosts-table">
+                <thead>
+                  <tr>
+                    <th data-col="ip">IP</th>
+                    <th data-col="hostname">HOSTNAME</th>
+                    <th data-col="ports">OPEN PORTS</th>
+                    <th data-col="os_guess">OS GUESS</th>
+                    <th data-col="first_seen">FIRST SEEN</th>
+                  </tr>
+                </thead>
+                <tbody id="hosts-tbody"></tbody>
+              </table>
+            </div>
+
+            <!-- WIFI -->
+            <div class="tab-pane" id="tab-wifi">
+              <table id="wifi-table">
+                <thead>
+                  <tr>
+                    <th data-col="ssid">SSID</th>
+                    <th data-col="bssid">BSSID</th>
+                    <th data-col="signal_dbm">SIGNAL (dBm)</th>
+                    <th data-col="channel">CHANNEL</th>
+                    <th data-col="security">SECURITY</th>
+                    <th data-col="first_seen">FIRST SEEN</th>
+                  </tr>
+                </thead>
+                <tbody id="wifi-tbody"></tbody>
+              </table>
+              <div id="channel-strip"></div>
+            </div>
+
+            <!-- BLE -->
+            <div class="tab-pane" id="tab-ble">
+              <table id="ble-table">
+                <thead>
+                  <tr>
+                    <th data-col="name">DEVICE NAME</th>
+                    <th data-col="mac">MAC</th>
+                    <th data-col="rssi">RSSI</th>
+                    <th data-col="services">SERVICES</th>
+                    <th data-col="first_seen">FIRST SEEN</th>
+                  </tr>
+                </thead>
+                <tbody id="ble-tbody"></tbody>
+              </table>
+            </div>
+
+            <!-- CREDENTIALS -->
+            <div class="tab-pane" id="tab-creds">
+              <div style="margin-bottom:10px;">
+                <button id="btn-export-csv">EXPORT CSV</button>
+              </div>
+              <table id="creds-table">
+                <thead>
+                  <tr>
+                    <th data-col="protocol">PROTOCOL</th>
+                    <th data-col="host">HOST</th>
+                    <th data-col="username">USERNAME</th>
+                    <th data-col="password">PASSWORD/HASH</th>
+                    <th data-col="timestamp">TIMESTAMP</th>
+                  </tr>
+                </thead>
+                <tbody id="creds-tbody"></tbody>
+              </table>
+            </div>
+
+            <!-- HID LOG -->
+            <div class="tab-pane" id="tab-hid">
+              <div id="hid-list"></div>
+            </div>
+
+          </div><!-- /analysis-area -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAYLOAD VIEW ──────────────────────────────────── -->
+    <div class="view" id="view-payload">
+      <h2>PAYLOAD MANAGEMENT</h2>
+      <div class="split">
+
+        <!-- Left: device payload -->
+        <div class="panel">
+          <div class="row" style="justify-content:space-between;margin-bottom:10px;">
+            <h2 style="margin:0;border:none;padding:0;">DEVICE PAYLOAD (ONIKIRI)</h2>
+            <button id="btn-refresh-remote-payload">REFRESH</button>
+          </div>
+          <div id="remote-payload-list">
+            <span style="color:var(--text-dim);font-size:0.72rem;">Not connected.</span>
+          </div>
+          <div class="status-strip" id="remote-payload-status"></div>
+          <div class="row" style="margin-top:12px;flex-wrap:wrap;gap:6px;">
+            <button id="btn-payload-create">CREATE IMAGE (64MB)</button>
+            <button id="btn-payload-push">PUSH FILE</button>
+            <button class="danger" id="btn-payload-clear-remote">CLEAR ALL</button>
+          </div>
+        </div>
+
+        <!-- Right: local staging -->
+        <div class="panel">
+          <div class="row" style="justify-content:space-between;margin-bottom:10px;">
+            <h2 style="margin:0;border:none;padding:0;">LOCAL STAGING</h2>
+            <button id="btn-refresh-local-payload">REFRESH</button>
+          </div>
+          <div id="local-payload-list">
+            <span style="color:var(--text-dim);font-size:0.72rem;">No staged files.</span>
+          </div>
+          <div class="status-strip" id="local-payload-status"></div>
+          <div class="row" style="margin-top:12px;flex-wrap:wrap;gap:6px;">
+            <button id="btn-payload-add">ADD FILES</button>
+            <button id="btn-payload-push-all">PUSH ALL TO DEVICE</button>
+            <button id="btn-payload-open-folder">OPEN FOLDER</button>
+            <button class="danger" id="btn-payload-clear-local">CLEAR STAGING</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── SETTINGS VIEW ─────────────────────────────────── -->
+    <div class="view" id="view-settings">
+      <h2>SETTINGS</h2>
+      <div class="panel" style="max-width:520px;">
+        <div class="field">
+          <label>FTP Host</label>
+          <input id="s-ftp-host" type="text" style="width:100%;" />
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1;">
+            <label>FTP Port</label>
+            <input id="s-ftp-port" type="number" style="width:100%;" />
+          </div>
+          <div class="field" style="flex:2;">
+            <label>FTP Username</label>
+            <input id="s-ftp-user" type="text" style="width:100%;" />
+          </div>
+        </div>
+        <div class="field">
+          <label>FTP Password</label>
+          <input id="s-ftp-pass" type="password" style="width:100%;" />
+        </div>
+        <div class="field">
+          <label>Local Data Directory</label>
+          <input id="s-data-dir" type="text" style="width:100%;" />
+        </div>
+        <div class="field">
+          <label>Auto-Connect on Launch</label>
+          <div class="toggle-wrap">
+            <input id="s-auto-connect" type="checkbox" />
+            <span style="font-size:0.72rem;color:var(--text-dim);">Enabled</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Theme</label>
+          <select id="s-theme" style="width:100%;">
+            <option value="dark">DARK</option>
+            <option value="darker">DARKER</option>
+          </select>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <button id="btn-save-settings">SAVE SETTINGS</button>
+          <button class="danger" id="btn-clear-db">CLEAR LOCAL DATABASE</button>
+        </div>
+        <div class="status-strip" id="settings-status"></div>
+      </div>
+      <div class="version-strip">TOISHI v1.0.0  —  ONIKIRI MK.I COMPANION</div>
+    </div>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
