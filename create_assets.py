@@ -1,11 +1,13 @@
 """Prepare ICO assets for the Toishi project.
 
-- toishi/assets/toishi.ico : placeholder, always regenerated (used at runtime).
-- Icon.ico                 : expanded in-place to include 16/32/48/128 px frames
-                             so PyInstaller embeds a proper Windows PE icon group
-                             and the exe shows the correct icon in Explorer.
-                             Only touched when Pillow is available; left alone
-                             otherwise so a manual/custom icon is never destroyed.
+- toishi/assets/toishi.ico  : placeholder, always regenerated (satisfies the
+                              spec datas entry; not used directly by the app).
+- toishi/assets/Icon_win.ico: multi-size ICO (16/32/48/128 px) derived from
+                              Icon.ico and used ONLY as the PyInstaller PE icon
+                              so Windows Explorer shows the correct exe icon.
+                              Icon.ico itself is NEVER modified so pywebview
+                              (GUI window + system tray) always gets the
+                              original file it expects.
 """
 import struct
 from pathlib import Path
@@ -53,15 +55,15 @@ def _make_placeholder_ico() -> bytes:
 
 
 # ---------------------------------------------------------------------------
-# Pillow-based multi-size expander
+# Pillow-based multi-size builder
 # ---------------------------------------------------------------------------
 
-def _expand_ico_with_pillow(src: Path, dest: Path) -> None:
-    """Re-save *src* as a multi-size ICO at *dest* using Pillow."""
+def _make_win_ico(src: Path, dest: Path) -> None:
+    """Save a multi-size ICO derived from *src* to *dest* using Pillow."""
     img = Image.open(src).convert("RGBA")
     sizes = [(s, s) for s in _ICO_SIZES]
     img.save(dest, format="ICO", sizes=sizes)
-    print(f"Expanded {dest} -> sizes {_ICO_SIZES}")
+    print(f"Created {dest} (sizes: {_ICO_SIZES})")
 
 
 # ---------------------------------------------------------------------------
@@ -70,19 +72,22 @@ def _expand_ico_with_pillow(src: Path, dest: Path) -> None:
 
 if __name__ == "__main__":
     root = Path(__file__).parent
+    assets_dir = root / "toishi" / "assets"
+    assets_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. toishi/assets/toishi.ico — placeholder, always written fresh
-    assets_ico = root / "toishi" / "assets" / "toishi.ico"
-    assets_ico.parent.mkdir(parents=True, exist_ok=True)
+    # 1. toishi/assets/toishi.ico -- placeholder (required by spec datas)
+    assets_ico = assets_dir / "toishi.ico"
     assets_ico.write_bytes(_make_placeholder_ico())
     print(f"Created {assets_ico}")
 
-    # 2. Icon.ico — expand to multi-size using Pillow so the exe icon works
+    # 2. toishi/assets/Icon_win.ico -- multi-size PE icon for PyInstaller
+    #    Icon.ico is intentionally left untouched (used by pywebview at runtime)
     root_ico = root / "Icon.ico"
+    win_ico = assets_dir / "Icon_win.ico"
     if root_ico.exists() and _HAVE_PILLOW:
-        _expand_ico_with_pillow(root_ico, root_ico)
-    elif not root_ico.exists():
-        root_ico.write_bytes(_make_placeholder_ico())
-        print(f"Created placeholder {root_ico}")
+        _make_win_ico(root_ico, win_ico)
+    elif win_ico.exists():
+        print(f"Pillow not installed -- keeping existing {win_ico}")
     else:
-        print("Pillow not installed — Icon.ico left unchanged (run: pip install pillow)")
+        win_ico.write_bytes(_make_placeholder_ico())
+        print(f"Pillow not installed -- created placeholder {win_ico}")

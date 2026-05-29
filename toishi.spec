@@ -9,6 +9,7 @@ a = Analysis(
         ('toishi/assets', 'assets'),
         ('Icon.ico', '.'),
     ],
+
     hiddenimports=[
         'pywebview.platforms.winforms',
         'clr',
@@ -35,6 +36,6 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     console=False,
-    icon='Icon.ico',
+    icon='toishi/assets/Icon_win.ico',
     onefile=True,
 )
