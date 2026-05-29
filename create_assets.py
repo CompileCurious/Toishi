@@ -86,8 +86,13 @@ if __name__ == "__main__":
     win_ico = assets_dir / "Icon_win.ico"
     if root_ico.exists() and _HAVE_PILLOW:
         _make_win_ico(root_ico, win_ico)
-    elif win_ico.exists():
-        print(f"Pillow not installed -- keeping existing {win_ico}")
+    elif root_ico.exists():
+        # No Pillow: copy Icon.ico as-is so at least the correct image shows.
+        # Windows Explorer may still fall back for small sizes but won't show
+        # the red placeholder.
+        import shutil
+        shutil.copy2(root_ico, win_ico)
+        print(f"Pillow not installed -- copied Icon.ico to {win_ico} (install pillow for multi-size)")
     else:
         win_ico.write_bytes(_make_placeholder_ico())
-        print(f"Pillow not installed -- created placeholder {win_ico}")
+        print(f"Icon.ico not found -- created placeholder {win_ico}")
