@@ -11,6 +11,8 @@ from flask import Flask, send_from_directory
 
 BASE = Path(sys._MEIPASS) if hasattr(sys, "_MEIPASS") else Path(__file__).parent
 FRONTEND = BASE / "frontend"
+REPO_ROOT = Path(sys._MEIPASS) if hasattr(sys, "_MEIPASS") else Path(__file__).parent.parent
+ICON = str(REPO_ROOT / "Icon.ico")
 
 app = Flask(__name__, static_folder=str(FRONTEND), static_url_path="")
 
@@ -18,6 +20,14 @@ app = Flask(__name__, static_folder=str(FRONTEND), static_url_path="")
 @app.route("/")
 def index():
     return send_from_directory(str(FRONTEND), "index.html")
+
+
+@app.route("/Icon.ico")
+def favicon():
+    icon_path = Path(ICON)
+    if icon_path.exists():
+        return send_from_directory(str(icon_path.parent), icon_path.name, mimetype="image/x-icon")
+    return "", 404
 
 
 @app.route("/<path:filename>")
@@ -95,7 +105,7 @@ def main():
         min_size=(900, 600),
         js_api=api,
     )
-    webview.start()
+    webview.start(icon=ICON if Path(ICON).exists() else None)
 
 
 if __name__ == "__main__":
